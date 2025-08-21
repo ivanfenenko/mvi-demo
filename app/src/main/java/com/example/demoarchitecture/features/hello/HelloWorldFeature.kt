@@ -39,6 +39,12 @@ class HelloWorldFeature @Inject constructor(
         object ProduceHelloWorld : Intent()
     }
 
+    sealed class Action {
+        object LoadingStarted : Action()
+        data class LoadingSucceeded(val message: String, val counter: Int) : Action()
+        data class LoadingFailed(val error: String) : Action()
+    }
+
     sealed class Effect {
         object HelloWorldProduced : Effect()
         object ErrorOccurred : Effect()
@@ -58,6 +64,31 @@ class HelloWorldFeature @Inject constructor(
     fun sendIntent(intent: Intent) {
         featureScope.launch {
             _intentChannel.send(intent)
+        }
+    }
+
+    private fun dispatchAction(action: Action) {
+        val currentState = _state.value
+        val newState = reduce(currentState, action)
+        _state.value = newState
+    }
+
+    private fun reduce(currentState: State, action: Action): State {
+        return when (action) {
+            is Action.LoadingStarted -> currentState.copy(
+                isLoading = true,
+                error = null
+            )
+            is Action.LoadingSucceeded -> currentState.copy(
+                message = action.message,
+                counter = action.counter,
+                isLoading = false,
+                error = null
+            )
+            is Action.LoadingFailed -> currentState.copy(
+                isLoading = false,
+                error = action.error
+            )
         }
     }
 
@@ -87,40 +118,29 @@ class HelloWorldFeature @Inject constructor(
     private suspend fun produceHelloWorld() {
         val currentState = _state.value
         val newCounter = currentState.counter + 1
-
-        // Update state to loading
-        _state.value = currentState.copy(
-            isLoading = true,
-            error = null
-        )
-
+        
+        // Dispatch loading started action
+        dispatchAction(Action.LoadingStarted)
+        
         try {
             Timber.d("Fetching Hello World #$newCounter from repository")
-
+            
             // Fetch data from repository
             val newMessage = repository.getHelloWorld(newCounter)
-
-            // Update state with success
-            _state.value = currentState.copy(
-                message = newMessage,
-                counter = newCounter,
-                isLoading = false,
-                error = null
-            )
-
+            
+            // Dispatch success action
+            dispatchAction(Action.LoadingSucceeded(newMessage, newCounter))
+            
             // Emit success effect
             _effects.send(Effect.HelloWorldProduced)
             Timber.d("Effect sent: HelloWorldProduced")
-
+            
         } catch (e: Exception) {
             Timber.e(e, "Repository error: ${e.message}")
-
-            // Update state with error
-            _state.value = currentState.copy(
-                isLoading = false,
-                error = e.message ?: "Unknown error occurred"
-            )
-
+            
+            // Dispatch error action
+            dispatchAction(Action.LoadingFailed(e.message ?: "Unknown error occurred"))
+            
             // Emit error effect
             _effects.send(Effect.ErrorOccurred)
             Timber.d("Effect sent: ErrorOccurred")

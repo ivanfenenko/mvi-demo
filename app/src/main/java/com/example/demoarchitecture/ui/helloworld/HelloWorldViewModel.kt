@@ -24,6 +24,13 @@ class HelloWorldViewModel @Inject constructor(
         object LoadData : Intent()
     }
 
+    sealed class Action {
+        object Idle : Action()
+        object Loading : Action()
+        data class Success(val data: String) : Action()
+        data class Error(val message: String) : Action()
+    }
+
     sealed class UiState {
         object Idle : UiState()
         object Loading : UiState()
@@ -65,11 +72,12 @@ class HelloWorldViewModel @Inject constructor(
     private fun startFeatureObservers() {
         viewModelScope.launch {
             helloWorldFeature.state.collect { featureState ->
-                _uiState.value = when {
-                    featureState.isLoading -> UiState.Loading
-                    featureState.error != null -> UiState.Error(featureState.error)
-                    else -> UiState.Success(featureState.message)
+                val action = when {
+                    featureState.isLoading -> Action.Loading
+                    featureState.error != null -> Action.Error(featureState.error)
+                    else -> Action.Success(featureState.message)
                 }
+                dispatchAction(action)
             }
         }
 
@@ -79,6 +87,7 @@ class HelloWorldViewModel @Inject constructor(
                     is HelloWorldFeature.Effect.HelloWorldProduced -> {
                         _effects.emit(Effect.HelloWorldProduced)
                     }
+
                     is HelloWorldFeature.Effect.ErrorOccurred -> {
                         _effects.emit(Effect.ErrorOccurred)
                     }
@@ -90,6 +99,21 @@ class HelloWorldViewModel @Inject constructor(
     fun sendIntent(intent: Intent) {
         viewModelScope.launch {
             _intentChannel.send(intent)
+        }
+    }
+
+    private fun dispatchAction(action: Action) {
+        val currentState = _uiState.value
+        val newState = reduce(currentState, action)
+        _uiState.value = newState
+    }
+
+    private fun reduce(currentState: UiState, action: Action): UiState {
+        return when (action) {
+            is Action.Idle -> UiState.Idle
+            is Action.Loading -> UiState.Loading
+            is Action.Success -> UiState.Success(action.data)
+            is Action.Error -> UiState.Error(action.message)
         }
     }
 
