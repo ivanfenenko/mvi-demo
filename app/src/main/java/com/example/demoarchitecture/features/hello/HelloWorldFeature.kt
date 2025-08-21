@@ -1,5 +1,6 @@
 package com.example.demoarchitecture.features.hello
 
+import com.example.demoarchitecture.data.repository.HelloWorldRepository
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -14,17 +15,22 @@ import javax.inject.Inject
 
 @ViewModelScoped
 class HelloWorldFeature @Inject constructor(
-    private val featureScope: CoroutineScope
+    private val featureScope: CoroutineScope,
+    private val repository: HelloWorldRepository
 ) {
 
     data class State(
         val message: String,
-        val counter: Int
+        val counter: Int,
+        val isLoading: Boolean = false,
+        val error: String? = null
     ) {
         companion object {
             fun initial() = State(
                 message = "Hello World #0",
-                counter = 0
+                counter = 0,
+                isLoading = false,
+                error = null
             )
         }
     }
@@ -35,6 +41,7 @@ class HelloWorldFeature @Inject constructor(
 
     sealed class Effect {
         object HelloWorldProduced : Effect()
+        object ErrorOccurred : Effect()
     }
 
     private val _intentChannel = Channel<Intent>()
@@ -75,17 +82,44 @@ class HelloWorldFeature @Inject constructor(
     private suspend fun produceHelloWorld() {
         val currentState = _state.value
         val newCounter = currentState.counter + 1
-        val newMessage = "Hello World #$newCounter"
 
-        Timber.d("Producing Hello World #$newCounter")
-
+        // Update state to loading
         _state.value = currentState.copy(
-            message = newMessage,
-            counter = newCounter
+            isLoading = true,
+            error = null
         )
 
-        _effects.send(Effect.HelloWorldProduced)
-        Timber.d("Effect sent: HelloWorldProduced")
+        try {
+            Timber.d("Fetching Hello World #$newCounter from repository")
+
+            // Fetch data from repository
+            val newMessage = repository.getHelloWorld(newCounter)
+
+            // Update state with success
+            _state.value = currentState.copy(
+                message = newMessage,
+                counter = newCounter,
+                isLoading = false,
+                error = null
+            )
+
+            // Emit success effect
+            _effects.send(Effect.HelloWorldProduced)
+            Timber.d("Effect sent: HelloWorldProduced")
+
+        } catch (e: Exception) {
+            Timber.e(e, "Repository error: ${e.message}")
+
+            // Update state with error
+            _state.value = currentState.copy(
+                isLoading = false,
+                error = e.message ?: "Unknown error occurred"
+            )
+
+            // Emit error effect
+            _effects.send(Effect.ErrorOccurred)
+            Timber.d("Effect sent: ErrorOccurred")
+        }
     }
 
 }

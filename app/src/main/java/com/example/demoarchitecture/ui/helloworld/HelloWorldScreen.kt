@@ -38,6 +38,9 @@ fun HelloWorldScreen(
                 is HelloWorldViewModel.Effect.HelloWorldProduced -> {
                     Toast.makeText(context, "Hello World Produced!", Toast.LENGTH_SHORT).show()
                 }
+                is HelloWorldViewModel.Effect.ErrorOccurred -> {
+                    Toast.makeText(context, "Error occurred!", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -88,7 +91,7 @@ fun HelloWorldScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = onNavigateBack

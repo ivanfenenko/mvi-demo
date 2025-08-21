@@ -30,6 +30,7 @@ class HelloWorldViewModel @Inject constructor(
 
     sealed class Effect {
         object HelloWorldProduced : Effect()
+        object ErrorOccurred : Effect()
     }
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
@@ -41,7 +42,11 @@ class HelloWorldViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             helloWorldFeature.state.collect { featureState ->
-                _uiState.value = UiState.Success(featureState.message)
+                _uiState.value = when {
+                    featureState.isLoading -> UiState.Loading
+                    featureState.error != null -> UiState.Error(featureState.error)
+                    else -> UiState.Success(featureState.message)
+                }
             }
         }
 
@@ -50,6 +55,9 @@ class HelloWorldViewModel @Inject constructor(
                 when (featureEffect) {
                     is HelloWorldFeature.Effect.HelloWorldProduced -> {
                         _effects.emit(Effect.HelloWorldProduced)
+                    }
+                    is HelloWorldFeature.Effect.ErrorOccurred -> {
+                        _effects.emit(Effect.ErrorOccurred)
                     }
                 }
             }
