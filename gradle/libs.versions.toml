@@ -11,8 +11,8 @@ composeBom = "2024.09.00"
 hilt = "2.52"
 hiltExt = "1.2.0"
 kapt = "2.0.21"
-coroutines = "1.8.1"
-detekt = "1.23.6"
+coroutines = "1.10.2"
+detekt = "1.23.8"
 timber = "5.0.1"
 
 [libraries]

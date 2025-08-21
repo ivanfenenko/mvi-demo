@@ -1,0 +1,7 @@
+complexity:
+  LongMethod:
+    active: true
+    threshold: 120
+    ignoreAnnotated: [ ]
+
+
