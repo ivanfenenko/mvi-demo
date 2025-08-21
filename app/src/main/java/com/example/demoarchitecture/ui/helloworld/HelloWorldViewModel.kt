@@ -31,21 +31,25 @@ class HelloWorldViewModel @Inject constructor(
         data class Error(val message: String) : Action()
     }
 
-    sealed class UiState {
-        object Idle : UiState()
-        object Loading : UiState()
-        data class Success(val data: String) : UiState()
-        data class Error(val message: String) : UiState()
-    }
-
     sealed class Effect {
         object HelloWorldProduced : Effect()
         object ErrorOccurred : Effect()
     }
 
+    data class State(
+        val helloWorld: HelloWorldState = HelloWorldState.Idle
+    ) {
+        sealed class HelloWorldState {
+            object Idle : HelloWorldState()
+            object Loading : HelloWorldState()
+            data class Success(val data: String) : HelloWorldState()
+            data class Error(val message: String) : HelloWorldState()
+        }
+    }
+
     private val _intentChannel = Channel<Intent>()
-    private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
-    val uiState: StateFlow<UiState> = _uiState
+    private val _uiState = MutableStateFlow(State())
+    val uiState: StateFlow<State> = _uiState
 
     private val _effects = MutableSharedFlow<Effect>(replay = 0)
     val effects: SharedFlow<Effect> = _effects.asSharedFlow()
@@ -108,12 +112,20 @@ class HelloWorldViewModel @Inject constructor(
         _uiState.value = newState
     }
 
-    private fun reduce(currentState: UiState, action: Action): UiState {
+    private fun reduce(currentState: State, action: Action): State {
         return when (action) {
-            is Action.Idle -> UiState.Idle
-            is Action.Loading -> UiState.Loading
-            is Action.Success -> UiState.Success(action.data)
-            is Action.Error -> UiState.Error(action.message)
+            is Action.Idle -> currentState.copy(
+                helloWorld = State.HelloWorldState.Idle
+            )
+            is Action.Loading -> currentState.copy(
+                helloWorld = State.HelloWorldState.Loading
+            )
+            is Action.Success -> currentState.copy(
+                helloWorld = State.HelloWorldState.Success(action.data)
+            )
+            is Action.Error -> currentState.copy(
+                helloWorld = State.HelloWorldState.Error(action.message)
+            )
         }
     }
 

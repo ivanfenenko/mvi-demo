@@ -55,8 +55,8 @@ fun HelloWorldScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            when (val state = uiState) {
-                is UiState.Idle -> {
+            when (val helloWorldState = uiState.helloWorld) {
+                is HelloWorldViewModel.State.HelloWorldState.Idle -> {
                     Button(
                         onClick = { viewModel.sendIntent(HelloWorldViewModel.Intent.LoadData) }
                     ) {
@@ -64,14 +64,14 @@ fun HelloWorldScreen(
                     }
                 }
 
-                is UiState.Loading -> {
+                is HelloWorldViewModel.State.HelloWorldState.Loading -> {
                     CircularProgressIndicator()
                     Spacer(modifier = Modifier.height(8.dp))
                     Text("Loading...")
                 }
 
-                is UiState.Success -> {
-                    Text(state.data)
+                is HelloWorldViewModel.State.HelloWorldState.Success -> {
+                    Text(helloWorldState.data)
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = { viewModel.sendIntent(HelloWorldViewModel.Intent.LoadData) }
@@ -80,8 +80,8 @@ fun HelloWorldScreen(
                     }
                 }
 
-                is UiState.Error -> {
-                    Text(state.message, color = MaterialTheme.colorScheme.error)
+                is HelloWorldViewModel.State.HelloWorldState.Error -> {
+                    Text(helloWorldState.message, color = MaterialTheme.colorScheme.error)
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = { viewModel.sendIntent(HelloWorldViewModel.Intent.LoadData) }
