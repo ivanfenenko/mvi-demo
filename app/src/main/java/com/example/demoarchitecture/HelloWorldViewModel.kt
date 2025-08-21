@@ -37,7 +37,7 @@ class HelloWorldViewModel @Inject constructor(
 
     init {
         // Feature automatically starts processing intents - no manual initialization needed!
-        
+
         // Observe feature state
         viewModelScope.launch {
             helloWorldFeature.state.collect { featureState ->
@@ -62,7 +62,6 @@ class HelloWorldViewModel @Inject constructor(
     fun processIntent(intent: Intent) {
         when (intent) {
             is Intent.LoadData -> {
-                // Send intent to feature's queue (non-blocking)
                 viewModelScope.launch {
                     helloWorldFeature.intentChannel.send(HelloWorldFeature.Intent.ProduceHelloWorld)
                 }
@@ -70,5 +69,4 @@ class HelloWorldViewModel @Inject constructor(
         }
     }
 
-    // No onCleared override needed - Hilt automatically manages feature lifecycle
 }
