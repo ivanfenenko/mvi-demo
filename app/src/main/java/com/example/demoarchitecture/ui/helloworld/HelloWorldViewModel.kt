@@ -1,4 +1,4 @@
-package com.example.demoarchitecture
+package com.example.demoarchitecture.ui.helloworld
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

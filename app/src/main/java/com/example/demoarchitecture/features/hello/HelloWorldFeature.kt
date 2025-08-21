@@ -88,5 +88,4 @@ class HelloWorldFeature @Inject constructor(
         Timber.d("Effect sent: HelloWorldProduced")
     }
 
-    fun getCurrentState(): State = _state.value
 }
