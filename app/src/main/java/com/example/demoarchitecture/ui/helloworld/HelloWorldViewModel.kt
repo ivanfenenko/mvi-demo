@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.demoarchitecture.features.hello.HelloWorldFeature
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,27 +35,21 @@ class HelloWorldViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState
 
-    private val _effects = MutableStateFlow<Effect?>(null)
-    val effects: StateFlow<Effect?> = _effects
+    private val _effects = MutableSharedFlow<Effect>(replay = 0)
+    val effects: SharedFlow<Effect> = _effects.asSharedFlow()
 
     init {
-        // Feature automatically starts processing intents - no manual initialization needed!
-
-        // Observe feature state
         viewModelScope.launch {
             helloWorldFeature.state.collect { featureState ->
                 _uiState.value = UiState.Success(featureState.message)
             }
         }
 
-        // Observe feature effects
         viewModelScope.launch {
             helloWorldFeature.effects.collect { featureEffect ->
                 when (featureEffect) {
                     is HelloWorldFeature.Effect.HelloWorldProduced -> {
-                        _effects.value = Effect.HelloWorldProduced
-                        // Clear effect after it's been emitted
-                        _effects.value = null
+                        _effects.emit(Effect.HelloWorldProduced)
                     }
                 }
             }
@@ -68,5 +65,4 @@ class HelloWorldViewModel @Inject constructor(
             }
         }
     }
-
 }

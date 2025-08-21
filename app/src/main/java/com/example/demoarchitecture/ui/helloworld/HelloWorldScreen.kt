@@ -30,16 +30,14 @@ fun HelloWorldScreen(
     viewModel: HelloWorldViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val effects by viewModel.effects.collectAsState()
     val context = LocalContext.current
 
-    LaunchedEffect(effects) {
-        when (effects) {
-            is HelloWorldViewModel.Effect.HelloWorldProduced -> {
-                Toast.makeText(context, "Hello World Produced!", Toast.LENGTH_SHORT).show()
-            }
-
-            null -> { /* No effect to handle */
+    LaunchedEffect(Unit) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is HelloWorldViewModel.Effect.HelloWorldProduced -> {
+                    Toast.makeText(context, "Hello World Produced!", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
