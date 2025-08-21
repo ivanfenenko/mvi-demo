@@ -42,25 +42,31 @@ class HelloWorldViewModel @Inject constructor(
     init {
         // Observe feature state and effects
         viewModelScope.launch {
-            // Combine feature state with UI state
-            combine(
-                helloWorldFeature.state,
-                helloWorldFeature.effects
-            ) { featureState, featureEffect ->
-                // Update UI state based on feature state
+            // Observe feature state
+            helloWorldFeature.state.collect { featureState ->
                 _uiState.value = UiState.Success(featureState.message)
-
-                // Forward effects to UI
-                _effects.emit(Effect.HelloWorldProduced)
-            }.collect {}
+            }
+        }
+        
+        // Observe feature effects
+        viewModelScope.launch {
+            helloWorldFeature.effects.collect { featureEffect ->
+                when (featureEffect) {
+                    is HelloWorldFeature.Effect.HelloWorldProduced -> {
+                        _effects.emit(Effect.HelloWorldProduced)
+                    }
+                }
+            }
         }
     }
 
     fun processIntent(intent: Intent) {
         when (intent) {
             is Intent.LoadData -> {
-                // Delegate to feature
-                helloWorldFeature.processIntent(HelloWorldFeature.Intent.ProduceHelloWorld)
+                // Delegate to feature in a coroutine
+                viewModelScope.launch {
+                    helloWorldFeature.processIntent(HelloWorldFeature.Intent.ProduceHelloWorld)
+                }
             }
         }
     }

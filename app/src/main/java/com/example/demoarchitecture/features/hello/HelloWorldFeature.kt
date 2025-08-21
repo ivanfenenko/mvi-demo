@@ -38,7 +38,7 @@ class HelloWorldFeature @Inject constructor() {
     private val _effects = MutableSharedFlow<Effect>(replay = 0)
     val effects: SharedFlow<Effect> = _effects.asSharedFlow()
 
-    fun processIntent(intent: Intent) {
+    suspend fun processIntent(intent: Intent) {
         when (intent) {
             is Intent.ProduceHelloWorld -> {
                 produceHelloWorld()
@@ -46,7 +46,7 @@ class HelloWorldFeature @Inject constructor() {
         }
     }
 
-    private fun produceHelloWorld() {
+    private suspend fun produceHelloWorld() {
         val currentState = _state.value
         val newCounter = currentState.counter + 1
         val newMessage = "Hello World #$newCounter"
@@ -58,7 +58,7 @@ class HelloWorldFeature @Inject constructor() {
         )
 
         // Emit effect (one-time event)
-        _effects.tryEmit(Effect.HelloWorldProduced)
+        _effects.emit(Effect.HelloWorldProduced)
     }
 
     fun getCurrentState(): State = _state.value

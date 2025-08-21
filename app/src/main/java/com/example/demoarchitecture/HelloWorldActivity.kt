@@ -30,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.demoarchitecture.ui.theme.DemoArchitectureTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.SharedFlow
 
 @AndroidEntryPoint
 class HelloWorldActivity : ComponentActivity() {
@@ -44,18 +45,18 @@ class HelloWorldActivity : ComponentActivity() {
                     snackbarHost = { SnackbarHost(remember { SnackbarHostState() }) }
                 ) { innerPadding ->
                     val uiState by viewModel.uiState.collectAsState()
-                    val effect by viewModel.effects.collectAsState(null)
 
                     HelloWorldContent(
                         uiState = uiState,
                         onLoadClick = {
+                            android.util.Log.d("HelloWorldActivity", "Button clicked!")
                             viewModel.processIntent(HelloWorldViewModel.Intent.LoadData)
                         },
                         modifier = Modifier.padding(innerPadding)
                     )
 
                     // Handle effects
-                    HandleEffects(effect = effect)
+                    HandleEffects(effects = viewModel.effects)
                 }
             }
         }
@@ -63,17 +64,15 @@ class HelloWorldActivity : ComponentActivity() {
 }
 
 @Composable
-fun HandleEffects(effect: HelloWorldViewModel.Effect?) {
+fun HandleEffects(effects: SharedFlow<HelloWorldViewModel.Effect>) {
     val context = LocalContext.current
 
-    LaunchedEffect(effect) {
-        when (effect) {
-            is HelloWorldViewModel.Effect.HelloWorldProduced -> {
-                Toast.makeText(context, "Hello World Produced!", Toast.LENGTH_SHORT).show()
-            }
-
-            null -> {
-                // Do nothing
+    LaunchedEffect(Unit) {
+        effects.collect { effect ->
+            when (effect) {
+                is HelloWorldViewModel.Effect.HelloWorldProduced -> {
+                    Toast.makeText(context, "Hello World Produced!", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
