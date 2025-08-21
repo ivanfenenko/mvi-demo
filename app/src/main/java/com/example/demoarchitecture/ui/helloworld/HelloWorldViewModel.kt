@@ -4,11 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.demoarchitecture.features.hello.HelloWorldFeature
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -33,6 +36,7 @@ class HelloWorldViewModel @Inject constructor(
         object ErrorOccurred : Effect()
     }
 
+    private val _intentChannel = Channel<Intent>()
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState
 
@@ -40,6 +44,25 @@ class HelloWorldViewModel @Inject constructor(
     val effects: SharedFlow<Effect> = _effects.asSharedFlow()
 
     init {
+        startIntentProcessor()
+        startFeatureObservers()
+    }
+
+    private fun startIntentProcessor() {
+        viewModelScope.launch {
+            _intentChannel.receiveAsFlow()
+                .buffer(Channel.UNLIMITED)
+                .collect { intent ->
+                    try {
+                        processIntent(intent)
+                    } catch (e: Exception) {
+                        // Handle ViewModel-level errors
+                    }
+                }
+        }
+    }
+
+    private fun startFeatureObservers() {
         viewModelScope.launch {
             helloWorldFeature.state.collect { featureState ->
                 _uiState.value = when {
@@ -64,13 +87,18 @@ class HelloWorldViewModel @Inject constructor(
         }
     }
 
-    fun processIntent(intent: Intent) {
+    fun sendIntent(intent: Intent) {
+        viewModelScope.launch {
+            _intentChannel.send(intent)
+        }
+    }
+
+    private fun processIntent(intent: Intent) {
         when (intent) {
             is Intent.LoadData -> {
-                viewModelScope.launch {
-                    helloWorldFeature.intentChannel.send(HelloWorldFeature.Intent.ProduceHelloWorld)
-                }
+                helloWorldFeature.sendIntent(HelloWorldFeature.Intent.ProduceHelloWorld)
             }
         }
+        // Add more intent processing here as needed
     }
 }

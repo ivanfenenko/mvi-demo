@@ -4,10 +4,10 @@ import com.example.demoarchitecture.data.repository.HelloWorldRepository
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -45,8 +45,6 @@ class HelloWorldFeature @Inject constructor(
     }
 
     private val _intentChannel = Channel<Intent>()
-    val intentChannel: SendChannel<Intent> = _intentChannel
-
     private val _state = MutableStateFlow(State.initial())
     val state: StateFlow<State> = _state
 
@@ -57,16 +55,23 @@ class HelloWorldFeature @Inject constructor(
         startIntentProcessor()
     }
 
+    fun sendIntent(intent: Intent) {
+        featureScope.launch {
+            _intentChannel.send(intent)
+        }
+    }
+
     private fun startIntentProcessor() {
         featureScope.launch {
-            Timber.d("Intent processor started")
-            for (intent in _intentChannel) {
-                try {
-                    processIntent(intent)
-                } catch (e: Exception) {
-                    Timber.e(e, "Error processing intent: $intent")
+            _intentChannel.receiveAsFlow()
+                .buffer(Channel.UNLIMITED)
+                .collect { intent ->
+                    try {
+                        processIntent(intent)
+                    } catch (e: Exception) {
+                        Timber.e(e, "Error processing intent: $intent")
+                    }
                 }
-            }
         }
     }
 

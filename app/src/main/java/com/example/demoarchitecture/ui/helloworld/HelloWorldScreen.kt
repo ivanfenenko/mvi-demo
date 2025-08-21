@@ -58,7 +58,7 @@ fun HelloWorldScreen(
             when (val state = uiState) {
                 is UiState.Idle -> {
                     Button(
-                        onClick = { viewModel.processIntent(HelloWorldViewModel.Intent.LoadData) }
+                        onClick = { viewModel.sendIntent(HelloWorldViewModel.Intent.LoadData) }
                     ) {
                         Text("Load Hello World")
                     }
@@ -74,7 +74,7 @@ fun HelloWorldScreen(
                     Text(state.data)
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
-                        onClick = { viewModel.processIntent(HelloWorldViewModel.Intent.LoadData) }
+                        onClick = { viewModel.sendIntent(HelloWorldViewModel.Intent.LoadData) }
                     ) {
                         Text("Load Again")
                     }
@@ -84,7 +84,7 @@ fun HelloWorldScreen(
                     Text(state.message, color = MaterialTheme.colorScheme.error)
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
-                        onClick = { viewModel.processIntent(HelloWorldViewModel.Intent.LoadData) }
+                        onClick = { viewModel.sendIntent(HelloWorldViewModel.Intent.LoadData) }
                     ) {
                         Text("Retry")
                     }
