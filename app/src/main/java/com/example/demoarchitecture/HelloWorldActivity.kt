@@ -30,7 +30,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.demoarchitecture.ui.theme.DemoArchitectureTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.SharedFlow
 
 @AndroidEntryPoint
 class HelloWorldActivity : ComponentActivity() {
@@ -45,6 +44,7 @@ class HelloWorldActivity : ComponentActivity() {
                     snackbarHost = { SnackbarHost(remember { SnackbarHostState() }) }
                 ) { innerPadding ->
                     val uiState by viewModel.uiState.collectAsState()
+                    val effect by viewModel.effects.collectAsState()
 
                     HelloWorldContent(
                         uiState = uiState,
@@ -56,7 +56,7 @@ class HelloWorldActivity : ComponentActivity() {
                     )
 
                     // Handle effects
-                    HandleEffects(effects = viewModel.effects)
+                    HandleEffects(effect = effect)
                 }
             }
         }
@@ -64,15 +64,17 @@ class HelloWorldActivity : ComponentActivity() {
 }
 
 @Composable
-fun HandleEffects(effects: SharedFlow<HelloWorldViewModel.Effect>) {
+fun HandleEffects(effect: HelloWorldViewModel.Effect?) {
     val context = LocalContext.current
 
-    LaunchedEffect(Unit) {
-        effects.collect { effect ->
-            when (effect) {
-                is HelloWorldViewModel.Effect.HelloWorldProduced -> {
-                    Toast.makeText(context, "Hello World Produced!", Toast.LENGTH_SHORT).show()
-                }
+    LaunchedEffect(effect) {
+        when (effect) {
+            is HelloWorldViewModel.Effect.HelloWorldProduced -> {
+                Toast.makeText(context, "Hello World Produced!", Toast.LENGTH_SHORT).show()
+            }
+
+            null -> {
+                // do nothing
             }
         }
     }
