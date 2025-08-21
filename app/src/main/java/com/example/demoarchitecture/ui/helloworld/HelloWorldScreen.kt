@@ -21,8 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.demoarchitecture.ui.helloworld.HelloWorldViewModel
-import com.example.demoarchitecture.ui.helloworld.HelloWorldViewModel.UiState
 
 @Composable
 fun HelloWorldScreen(
@@ -38,6 +36,7 @@ fun HelloWorldScreen(
                 is HelloWorldViewModel.Effect.HelloWorldProduced -> {
                     Toast.makeText(context, "Hello World Produced!", Toast.LENGTH_SHORT).show()
                 }
+
                 is HelloWorldViewModel.Effect.ErrorOccurred -> {
                     Toast.makeText(context, "Error occurred!", Toast.LENGTH_SHORT).show()
                 }
