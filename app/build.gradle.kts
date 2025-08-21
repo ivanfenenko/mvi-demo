@@ -7,6 +7,11 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
+detekt {
+    config.setFrom("${rootProject.projectDir}/config/detekt/detekt.yml")
+    buildUponDefaultConfig = true
+}
+
 android {
     namespace = "com.example.demoarchitecture"
     compileSdk = 36

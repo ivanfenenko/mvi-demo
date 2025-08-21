@@ -66,7 +66,7 @@ class HelloWorldViewModel @Inject constructor(
                 .collect { intent ->
                     try {
                         processIntent(intent)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         // Handle ViewModel-level errors
                     }
                 }
