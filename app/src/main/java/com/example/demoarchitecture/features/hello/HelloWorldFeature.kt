@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -18,6 +19,8 @@ class HelloWorldFeature @Inject constructor(
     private val featureScope: CoroutineScope,
     private val repository: HelloWorldRepository
 ) {
+
+    private val nextCounter = java.util.concurrent.atomic.AtomicInteger(0)
 
     data class State(
         val message: String,
@@ -68,9 +71,9 @@ class HelloWorldFeature @Inject constructor(
     }
 
     private fun dispatchAction(action: Action) {
-        val currentState = _state.value
-        val newState = reduce(currentState, action)
-        _state.value = newState
+        _state.update { currentState ->
+            reduce(currentState, action)
+        }
     }
 
     private fun reduce(currentState: State, action: Action): State {
@@ -97,10 +100,12 @@ class HelloWorldFeature @Inject constructor(
             _intentChannel.receiveAsFlow()
                 .buffer(Channel.UNLIMITED)
                 .collect { intent ->
-                    try {
-                        processIntent(intent)
-                    } catch (e: Exception) {
-                        Timber.e(e, "Error processing intent: $intent")
+                    featureScope.launch {
+                        try {
+                            processIntent(intent)
+                        } catch (e: Exception) {
+                            Timber.e(e, "Error processing intent: $intent")
+                        }
                     }
                 }
         }
@@ -116,20 +121,19 @@ class HelloWorldFeature @Inject constructor(
     }
 
     private suspend fun produceHelloWorld() {
-        val currentState = _state.value
-        val newCounter = currentState.counter + 1
+        val assignedCounter = nextCounter.incrementAndGet()
         
         // Dispatch loading started action
         dispatchAction(Action.LoadingStarted)
         
         try {
-            Timber.d("Fetching Hello World #$newCounter from repository")
+            Timber.d("Fetching Hello World #$assignedCounter from repository")
             
             // Fetch data from repository
-            val newMessage = repository.getHelloWorld(newCounter)
+            val newMessage = repository.getHelloWorld(assignedCounter)
             
-            // Dispatch success action
-            dispatchAction(Action.LoadingSucceeded(newMessage, newCounter))
+            // Dispatch success action with the assigned counter
+            dispatchAction(Action.LoadingSucceeded(newMessage, assignedCounter))
             
             // Emit success effect
             _effects.send(Effect.HelloWorldProduced)
