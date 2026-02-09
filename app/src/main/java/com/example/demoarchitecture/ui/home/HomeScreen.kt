@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -45,14 +46,23 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.primary
             )
 
+            Text(
+                text = "v2.0 - Updated",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.tertiary
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {
                     onNavigateToHelloWorld()
-                }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
             ) {
-                Text("Go to Hello World")
+                Text("Hello World Feature")
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -60,9 +70,12 @@ fun HomeScreen(
             Button(
                 onClick = {
                     onNavigateToSecond()
-                }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary
+                )
             ) {
-                Text("Go to Second Screen")
+                Text("Second Screen")
             }
         }
     }

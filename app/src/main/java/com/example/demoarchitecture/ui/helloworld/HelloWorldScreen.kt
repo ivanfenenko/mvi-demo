@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -72,36 +73,65 @@ internal fun HelloWorldContent(
         ) {
             when (state) {
                 is HelloWorldViewModel.State.HelloWorldState.Idle -> {
+                    Text(
+                        text = "Ready to load",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = onLoadData
+                        onClick = onLoadData,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
-                        Text("Load Hello World")
+                        Text("Start Loading")
                     }
                 }
 
                 is HelloWorldViewModel.State.HelloWorldState.Loading -> {
-                    CircularProgressIndicator()
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("Loading...")
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Loading data...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
 
                 is HelloWorldViewModel.State.HelloWorldState.Success -> {
-                    Text(state.data)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "✓ ${state.data}",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = onLoadData
+                        onClick = onLoadData,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
-                        Text("Load Again")
+                        Text("Reload Data")
                     }
                 }
 
                 is HelloWorldViewModel.State.HelloWorldState.Error -> {
-                    Text(state.message, color = MaterialTheme.colorScheme.error)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "✗ ${state.message}",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = onLoadData
+                        onClick = onLoadData,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        )
                     ) {
-                        Text("Retry")
+                        Text("Try Again")
                     }
                 }
             }
