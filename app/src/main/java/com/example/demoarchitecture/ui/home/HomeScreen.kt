@@ -37,7 +37,15 @@ fun HomeScreen(
                 style = MaterialTheme.typography.headlineMedium
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Welcome to Demo Architecture App",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {
