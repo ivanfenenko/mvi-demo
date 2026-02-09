@@ -2,9 +2,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.hilt)
-    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.paparazzi)
+    alias(libs.plugins.hilt)
 }
 
 detekt {
@@ -39,8 +40,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
     }
     buildFeatures {
         compose = true
@@ -56,12 +59,12 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.material3)
 
     // Hilt
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
-    kapt(libs.kotlinx.metadata.jvm)
+    ksp(libs.hilt.compiler)
 
     // ViewModel
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -75,6 +78,7 @@ dependencies {
     implementation(libs.timber)
 
     testImplementation(libs.junit)
+    testImplementation(libs.paparazzi)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

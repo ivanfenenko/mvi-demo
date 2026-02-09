@@ -19,8 +19,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.demoarchitecture.ui.theme.DemoArchitectureTheme
 
 @Composable
 fun HelloWorldScreen(
@@ -44,8 +46,22 @@ fun HelloWorldScreen(
         }
     }
 
+    HelloWorldContent(
+        state = uiState.helloWorld,
+        onNavigateBack = onNavigateBack,
+        onLoadData = { viewModel.sendIntent(HelloWorldViewModel.Intent.LoadData) }
+    )
+}
+
+@Composable
+internal fun HelloWorldContent(
+    state: HelloWorldViewModel.State.HelloWorldState,
+    onNavigateBack: () -> Unit,
+    onLoadData: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
-        modifier = Modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize()
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -54,10 +70,10 @@ fun HelloWorldScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            when (val helloWorldState = uiState.helloWorld) {
+            when (state) {
                 is HelloWorldViewModel.State.HelloWorldState.Idle -> {
                     Button(
-                        onClick = { viewModel.sendIntent(HelloWorldViewModel.Intent.LoadData) }
+                        onClick = onLoadData
                     ) {
                         Text("Load Hello World")
                     }
@@ -70,20 +86,20 @@ fun HelloWorldScreen(
                 }
 
                 is HelloWorldViewModel.State.HelloWorldState.Success -> {
-                    Text(helloWorldState.data)
+                    Text(state.data)
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
-                        onClick = { viewModel.sendIntent(HelloWorldViewModel.Intent.LoadData) }
+                        onClick = onLoadData
                     ) {
                         Text("Load Again")
                     }
                 }
 
                 is HelloWorldViewModel.State.HelloWorldState.Error -> {
-                    Text(helloWorldState.message, color = MaterialTheme.colorScheme.error)
+                    Text(state.message, color = MaterialTheme.colorScheme.error)
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
-                        onClick = { viewModel.sendIntent(HelloWorldViewModel.Intent.LoadData) }
+                        onClick = onLoadData
                     ) {
                         Text("Retry")
                     }
@@ -98,5 +114,53 @@ fun HelloWorldScreen(
                 Text("Go Back")
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Hello World - Idle")
+@Composable
+fun HelloWorldIdlePreview() {
+    DemoArchitectureTheme {
+        HelloWorldContent(
+            state = HelloWorldViewModel.State.HelloWorldState.Idle,
+            onNavigateBack = {},
+            onLoadData = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Hello World - Loading")
+@Composable
+fun HelloWorldLoadingPreview() {
+    DemoArchitectureTheme {
+        HelloWorldContent(
+            state = HelloWorldViewModel.State.HelloWorldState.Loading,
+            onNavigateBack = {},
+            onLoadData = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Hello World - Success")
+@Composable
+fun HelloWorldSuccessPreview() {
+    DemoArchitectureTheme {
+        HelloWorldContent(
+            state = HelloWorldViewModel.State.HelloWorldState.Success("Hello World!"),
+            onNavigateBack = {},
+            onLoadData = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Hello World - Error")
+@Composable
+fun HelloWorldErrorPreview() {
+    DemoArchitectureTheme {
+        HelloWorldContent(
+            state = HelloWorldViewModel.State.HelloWorldState.Error("Something went wrong"),
+            onNavigateBack = {},
+            onLoadData = {}
+        )
     }
 }
